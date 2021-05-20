@@ -1,7 +1,11 @@
-import { ApolloServer, gql } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+
+import { resolvers, typeDefs } from './graphql';
+import users from './models/users';
+import messages from './models/messages';
 
 dotenv.config();
 
@@ -9,27 +13,22 @@ const app = express();
 
 app.use(cors());
 
-const schema = gql`
-  type Query {
-    me: User
-  }
-
-  type User {
-    username: String!
-  }
-`;
-
-const resolvers = {
-  Query: {
-    me: () => ({
-      username: 'Bart Brusselmans',
-    }),
-  },
+const me = {
+  id: '1',
+  messageIds: ['1'],
+  username: 'Bart Brusselmans',
 };
 
 const server = new ApolloServer({
+  context: {
+    me,
+    models: {
+      messages,
+      users,
+    },
+  },
   resolvers,
-  typeDefs: schema,
+  typeDefs,
 });
 
 server.applyMiddleware({ app, path: '/graphql' });
